@@ -1,0 +1,78 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Backend
+backend/logs/
+backend/dist/
+backend/.nyc_output
+backend/coverage
+
+# Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/build/
+android/app/build/
+android/captures/
+*.apk
+*.aab
+*.keystore
+android/app/google-services.json
+
+# Marketing
+marketing/.next/
+marketing/out/
+marketing/node_modules/
+marketing/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebaserc
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Secrets
+*.pem
+*.key
+secrets/
+credentials/
+service-account*.json
+
+# Documentation builds
+docs/.vuepress/dist
+docs/_book
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# OS
+Thumbs.db

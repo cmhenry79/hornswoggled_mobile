@@ -1,0 +1,57 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // User avatars
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if true; // Public avatars
+      allow write: if isAuthenticated() && isOwner(userId) && isImage() && isUnder5MB();
+    }
+
+    // Game submissions (images, doodles)
+    match /submissions/{gameId}/{roundId}/{fileName} {
+      allow read: if true; // Public during game
+      allow write: if isAuthenticated() && isImage() && isUnder5MB();
+    }
+
+    // Gallery items
+    match /gallery/{userId}/{fileName} {
+      allow read: if true; // Public gallery
+      allow write: if isAuthenticated() && isOwner(userId) && isImage() && isUnder5MB();
+    }
+
+    // Cosmetic assets (admin only)
+    match /cosmetics/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Word pack covers (admin only)
+    match /word-packs/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
