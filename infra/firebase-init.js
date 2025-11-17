@@ -1,15 +1,32 @@
 import admin from 'firebase-admin';
 import { Firestore } from '@google-cloud/firestore';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load .env from backend directory
+dotenv.config({ path: join(__dirname, '../backend/.env') });
 
 // Initialize Firebase Admin
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+const serviceAccount = {
+  type: 'service_account',
+  project_id: process.env.FIREBASE_PROJECT_ID,
+  client_email: process.env.FIREBASE_CLIENT_EMAIL,
+  private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+};
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET
 });
 
-const db = new Firestore();
+const db = new Firestore({
+  projectId: process.env.FIREBASE_PROJECT_ID
+});
 
 console.log('🔥 Initializing Firestore with seed data...\n');
 
