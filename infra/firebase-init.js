@@ -11,6 +11,10 @@ const __dirname = dirname(__filename);
 // Load .env from backend directory
 dotenv.config({ path: join(__dirname, '../backend/.env') });
 
+// Remove GOOGLE_APPLICATION_CREDENTIALS from environment
+// We want to use the credentials from .env instead
+delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
 // Initialize Firebase Admin
 const serviceAccount = {
   type: 'service_account',
