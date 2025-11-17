@@ -1,5 +1,4 @@
 import admin from 'firebase-admin';
-import { Firestore } from '@google-cloud/firestore';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -28,9 +27,8 @@ admin.initializeApp({
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET
 });
 
-const db = new Firestore({
-  projectId: process.env.FIREBASE_PROJECT_ID
-});
+// Use Firestore from admin SDK (not a separate client)
+const db = admin.firestore();
 
 console.log('🔥 Initializing Firestore with seed data...\n');
 
