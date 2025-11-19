@@ -1,13 +1,19 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import {
+  validatePurchase,
+  validateEquip,
+  validatePagination,
+  sanitizeAllInputs
+} from '../middleware/validation.js';
 import { StoreService } from '../services/storeService.js';
 
 const router = express.Router();
 const storeService = new StoreService();
 
 // Get all store items
-router.get('/items', asyncHandler(async (req, res) => {
+router.get('/items', validatePagination, asyncHandler(async (req, res) => {
   const { category, limit = 50, offset = 0 } = req.query;
 
   const items = await storeService.getStoreItems({
@@ -33,7 +39,7 @@ router.get('/inventory', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Purchase item
-router.post('/purchase', authenticate, asyncHandler(async (req, res) => {
+router.post('/purchase', authenticate, sanitizeAllInputs, validatePurchase, asyncHandler(async (req, res) => {
   const { itemId, paymentMethod = 'coins' } = req.body;
 
   const purchase = await storeService.purchaseItem(req.user.uid, itemId, paymentMethod);
@@ -45,7 +51,7 @@ router.post('/purchase', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Equip cosmetic
-router.post('/equip', authenticate, asyncHandler(async (req, res) => {
+router.post('/equip', authenticate, sanitizeAllInputs, validateEquip, asyncHandler(async (req, res) => {
   const { itemId, slot } = req.body;
 
   const result = await storeService.equipItem(req.user.uid, itemId, slot);
@@ -57,7 +63,7 @@ router.post('/equip', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Unlock via ad watch
-router.post('/unlock/ad', authenticate, asyncHandler(async (req, res) => {
+router.post('/unlock/ad', authenticate, sanitizeAllInputs, validatePurchase, asyncHandler(async (req, res) => {
   const { itemId, adToken } = req.body;
 
   const result = await storeService.unlockViaAd(req.user.uid, itemId, adToken);

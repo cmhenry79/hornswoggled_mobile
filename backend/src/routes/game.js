@@ -1,6 +1,15 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
+import {
+  validateGameId,
+  validateSubmitAnswer,
+  validateSubmitImage,
+  validateVote,
+  validateUsePowerup,
+  validateImageUpload,
+  sanitizeAllInputs
+} from '../middleware/validation.js';
 import { GameService } from '../services/gameService.js';
 import multer from 'multer';
 
@@ -12,11 +21,19 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new AppError('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed', 400), false);
+    }
   }
 });
 
 // Get game state
-router.get('/:gameId', authenticate, asyncHandler(async (req, res) => {
+router.get('/:gameId', authenticate, validateGameId, asyncHandler(async (req, res) => {
   const { gameId } = req.params;
   const game = await gameService.getGameById(gameId);
 
@@ -31,7 +48,7 @@ router.get('/:gameId', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Start a new round
-router.post('/:gameId/round/start', authenticate, asyncHandler(async (req, res) => {
+router.post('/:gameId/round/start', authenticate, validateGameId, asyncHandler(async (req, res) => {
   const { gameId } = req.params;
   const round = await gameService.startRound(gameId, req.user.uid);
 
@@ -42,7 +59,7 @@ router.post('/:gameId/round/start', authenticate, asyncHandler(async (req, res) 
 }));
 
 // Submit answer (text)
-router.post('/:gameId/submit', authenticate, asyncHandler(async (req, res) => {
+router.post('/:gameId/submit', authenticate, sanitizeAllInputs, validateSubmitAnswer, asyncHandler(async (req, res) => {
   const { gameId } = req.params;
   const { roundId, content, type = 'text' } = req.body;
 
@@ -63,13 +80,11 @@ router.post('/:gameId/submit', authenticate, asyncHandler(async (req, res) => {
 router.post('/:gameId/submit/image',
   authenticate,
   upload.single('image'),
+  validateSubmitImage,
+  validateImageUpload,
   asyncHandler(async (req, res) => {
     const { gameId } = req.params;
     const { roundId, type = 'image' } = req.body;
-
-    if (!req.file) {
-      throw new AppError('No image file provided', 400);
-    }
 
     const submission = await gameService.submitImage(
       gameId,
@@ -87,7 +102,7 @@ router.post('/:gameId/submit/image',
 );
 
 // Vote for submission
-router.post('/:gameId/vote', authenticate, asyncHandler(async (req, res) => {
+router.post('/:gameId/vote', authenticate, sanitizeAllInputs, validateVote, asyncHandler(async (req, res) => {
   const { gameId } = req.params;
   const { roundId, submissionId } = req.body;
 
@@ -105,7 +120,7 @@ router.post('/:gameId/vote', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Use powerup
-router.post('/:gameId/powerup/use', authenticate, asyncHandler(async (req, res) => {
+router.post('/:gameId/powerup/use', authenticate, sanitizeAllInputs, validateUsePowerup, asyncHandler(async (req, res) => {
   const { gameId } = req.params;
   const { powerupType, targetUserId } = req.body;
 
@@ -123,7 +138,7 @@ router.post('/:gameId/powerup/use', authenticate, asyncHandler(async (req, res) 
 }));
 
 // Get round results
-router.get('/:gameId/round/:roundId/results', authenticate, asyncHandler(async (req, res) => {
+router.get('/:gameId/round/:roundId/results', authenticate, validateGameId, asyncHandler(async (req, res) => {
   const { gameId, roundId } = req.params;
 
   const results = await gameService.getRoundResults(gameId, roundId);
@@ -135,7 +150,7 @@ router.get('/:gameId/round/:roundId/results', authenticate, asyncHandler(async (
 }));
 
 // Get final game results
-router.get('/:gameId/results', authenticate, asyncHandler(async (req, res) => {
+router.get('/:gameId/results', authenticate, validateGameId, asyncHandler(async (req, res) => {
   const { gameId } = req.params;
 
   const results = await gameService.getFinalResults(gameId);
@@ -147,7 +162,7 @@ router.get('/:gameId/results', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // End game early
-router.post('/:gameId/end', authenticate, asyncHandler(async (req, res) => {
+router.post('/:gameId/end', authenticate, validateGameId, asyncHandler(async (req, res) => {
   const { gameId } = req.params;
 
   await gameService.endGame(gameId, req.user.uid);

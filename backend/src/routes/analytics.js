@@ -1,13 +1,14 @@
 import express from 'express';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { validateTrackEvent, sanitizeAllInputs } from '../middleware/validation.js';
 import { AnalyticsService } from '../services/analyticsService.js';
 
 const router = express.Router();
 const analyticsService = new AnalyticsService();
 
 // Track event
-router.post('/event', optionalAuth, asyncHandler(async (req, res) => {
+router.post('/event', optionalAuth, sanitizeAllInputs, validateTrackEvent, asyncHandler(async (req, res) => {
   const { eventName, properties = {} } = req.body;
 
   await analyticsService.trackEvent({

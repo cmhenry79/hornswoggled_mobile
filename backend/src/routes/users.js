@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { validatePagination, sanitizeAllInputs } from '../middleware/validation.js';
 import { UserService } from '../services/userService.js';
 
 const router = express.Router();
@@ -29,7 +30,7 @@ router.get('/:userId/stats', asyncHandler(async (req, res) => {
 }));
 
 // Get user gallery
-router.get('/:userId/gallery', authenticate, asyncHandler(async (req, res) => {
+router.get('/:userId/gallery', authenticate, validatePagination, asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { limit = 20, offset = 0 } = req.query;
 
@@ -42,7 +43,7 @@ router.get('/:userId/gallery', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Save submission to gallery
-router.post('/gallery/save', authenticate, asyncHandler(async (req, res) => {
+router.post('/gallery/save', authenticate, sanitizeAllInputs, asyncHandler(async (req, res) => {
   const { submissionId, title } = req.body;
 
   const galleryItem = await userService.saveToGallery(req.user.uid, submissionId, title);

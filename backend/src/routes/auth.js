@@ -1,13 +1,14 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { validateLogin, validateUpdateProfile, sanitizeAllInputs } from '../middleware/validation.js';
 import { UserService } from '../services/userService.js';
 
 const router = express.Router();
 const userService = new UserService();
 
 // Register/Login - Create or update user profile
-router.post('/login', authenticate, asyncHandler(async (req, res) => {
+router.post('/login', authenticate, sanitizeAllInputs, validateLogin, asyncHandler(async (req, res) => {
   const { displayName, avatarUrl } = req.body;
 
   const user = await userService.createOrUpdateUser(
@@ -36,7 +37,7 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Update user profile
-router.patch('/me', authenticate, asyncHandler(async (req, res) => {
+router.patch('/me', authenticate, sanitizeAllInputs, validateUpdateProfile, asyncHandler(async (req, res) => {
   const updates = req.body;
   const user = await userService.updateUser(req.user.uid, updates);
 

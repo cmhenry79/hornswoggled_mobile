@@ -1,47 +1,60 @@
-// Simple profanity filter
-// In production, use a proper library like 'bad-words' or external API
+import Filter from 'bad-words';
 
-const badWords = [
-  // Add words to filter based on your content policy
-  // This is a minimal example
-];
+// Initialize profanity filter with custom configuration
+const filter = new Filter();
+
+// Add custom words if needed
+// filter.addWords('custom1', 'custom2');
 
 export function containsProfanity(text) {
-  if (!text) return false;
+  if (!text || typeof text !== 'string') return false;
 
-  const lowerText = text.toLowerCase();
-
-  return badWords.some(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'i');
-    return regex.test(lowerText);
-  });
+  try {
+    return filter.isProfane(text);
+  } catch (error) {
+    console.error('Error checking profanity:', error);
+    return false;
+  }
 }
 
 export function filterProfanity(text) {
-  if (!text) return text;
+  if (!text || typeof text !== 'string') return text;
 
-  let filtered = text;
-
-  badWords.forEach(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    filtered = filtered.replace(regex, '*'.repeat(word.length));
-  });
-
-  return filtered;
+  try {
+    return filter.clean(text);
+  } catch (error) {
+    console.error('Error filtering profanity:', error);
+    return text;
+  }
 }
 
 export function validateSubmission(content) {
-  if (!content || typeof content !== 'string') {
-    return { valid: false, reason: 'Invalid content' };
+  if (!content) {
+    return { valid: false, reason: 'Content is required' };
   }
 
-  if (content.length > 500) {
-    return { valid: false, reason: 'Content too long' };
+  if (typeof content !== 'string') {
+    return { valid: false, reason: 'Content must be a string' };
   }
 
-  if (process.env.ENABLE_PROFANITY_FILTER === 'true' && containsProfanity(content)) {
-    return { valid: false, reason: 'Content contains inappropriate language' };
+  const trimmed = content.trim();
+
+  if (trimmed.length === 0) {
+    return { valid: false, reason: 'Content cannot be empty' };
   }
 
-  return { valid: true };
+  if (trimmed.length > 500) {
+    return { valid: false, reason: 'Content too long (max 500 characters)' };
+  }
+
+  // Check for profanity
+  if (containsProfanity(trimmed)) {
+    return {
+      valid: false,
+      reason: 'Content contains inappropriate language',
+      filtered: filterProfanity(trimmed)
+    };
+  }
+
+  return { valid: true, value: trimmed };
 }

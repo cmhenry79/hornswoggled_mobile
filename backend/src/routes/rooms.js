@@ -2,13 +2,21 @@ import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 import { createRoomLimiter } from '../middleware/rateLimiter.js';
+import {
+  validateCreateRoom,
+  validateRoomCode,
+  validateRoomId,
+  validateAddBot,
+  validatePagination,
+  sanitizeAllInputs
+} from '../middleware/validation.js';
 import { RoomService } from '../services/roomService.js';
 
 const router = express.Router();
 const roomService = new RoomService();
 
 // Create a new game room
-router.post('/create', authenticate, createRoomLimiter, asyncHandler(async (req, res) => {
+router.post('/create', authenticate, createRoomLimiter, sanitizeAllInputs, validateCreateRoom, asyncHandler(async (req, res) => {
   const {
     visibility = 'public',
     maxPlayers = 8,
@@ -36,7 +44,7 @@ router.post('/create', authenticate, createRoomLimiter, asyncHandler(async (req,
 }));
 
 // Join a room by code
-router.post('/join/:code', authenticate, asyncHandler(async (req, res) => {
+router.post('/join/:code', authenticate, validateRoomCode, asyncHandler(async (req, res) => {
   const { code } = req.params;
   const room = await roomService.joinRoom(code, req.user.uid);
 
@@ -47,7 +55,7 @@ router.post('/join/:code', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Leave a room
-router.post('/:roomId/leave', authenticate, asyncHandler(async (req, res) => {
+router.post('/:roomId/leave', authenticate, validateRoomId, asyncHandler(async (req, res) => {
   const { roomId } = req.params;
   await roomService.leaveRoom(roomId, req.user.uid);
 
@@ -58,7 +66,7 @@ router.post('/:roomId/leave', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Get room details
-router.get('/:roomId', authenticate, asyncHandler(async (req, res) => {
+router.get('/:roomId', authenticate, validateRoomId, asyncHandler(async (req, res) => {
   const { roomId } = req.params;
   const room = await roomService.getRoomById(roomId);
 
@@ -73,7 +81,7 @@ router.get('/:roomId', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Update room settings (host only)
-router.patch('/:roomId', authenticate, asyncHandler(async (req, res) => {
+router.patch('/:roomId', authenticate, validateRoomId, sanitizeAllInputs, asyncHandler(async (req, res) => {
   const { roomId } = req.params;
   const updates = req.body;
 
@@ -86,7 +94,7 @@ router.patch('/:roomId', authenticate, asyncHandler(async (req, res) => {
 }));
 
 // Add bot to room
-router.post('/:roomId/bots/add', authenticate, asyncHandler(async (req, res) => {
+router.post('/:roomId/bots/add', authenticate, sanitizeAllInputs, validateAddBot, asyncHandler(async (req, res) => {
   const { roomId } = req.params;
   const { botId, difficulty = 'medium' } = req.body;
 
@@ -99,7 +107,7 @@ router.post('/:roomId/bots/add', authenticate, asyncHandler(async (req, res) => 
 }));
 
 // Remove bot from room
-router.delete('/:roomId/bots/:botId', authenticate, asyncHandler(async (req, res) => {
+router.delete('/:roomId/bots/:botId', authenticate, validateRoomId, asyncHandler(async (req, res) => {
   const { roomId, botId } = req.params;
 
   await roomService.removeBot(roomId, req.user.uid, botId);
@@ -111,7 +119,7 @@ router.delete('/:roomId/bots/:botId', authenticate, asyncHandler(async (req, res
 }));
 
 // Get active public rooms
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', validatePagination, asyncHandler(async (req, res) => {
   const { limit = 20, offset = 0 } = req.query;
 
   const rooms = await roomService.getPublicRooms(parseInt(limit), parseInt(offset));
@@ -123,7 +131,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 // Start game in room
-router.post('/:roomId/start', authenticate, asyncHandler(async (req, res) => {
+router.post('/:roomId/start', authenticate, validateRoomId, asyncHandler(async (req, res) => {
   const { roomId } = req.params;
 
   const game = await roomService.startGame(roomId, req.user.uid);

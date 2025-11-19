@@ -11,6 +11,10 @@ import com.hornswoggled.ui.auth.LoginScreen
 import com.hornswoggled.ui.lobby.LobbyScreen
 import com.hornswoggled.ui.room.RoomScreen
 import com.hornswoggled.ui.game.GameScreen
+import com.hornswoggled.ui.profile.ProfileScreen
+import com.hornswoggled.ui.store.StoreScreen
+import com.hornswoggled.ui.gallery.GalleryScreen
+import com.hornswoggled.ui.settings.SettingsScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -95,6 +99,30 @@ fun HornswoggledNavigation() {
             )
         }
 
-        // Additional screens...
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToGallery = { navController.navigate(Screen.Gallery.route) },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+            )
+        }
+
+        composable(Screen.Store.route) {
+            StoreScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Gallery.route) {
+            GalleryScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }

@@ -1,9 +1,15 @@
 import { logger } from '../utils/logger.js';
 import { getAuth } from '../config/firebase.js';
 import { collections } from '../config/firebase.js';
+import { filterProfanity } from '../utils/profanityFilter.js';
+import sanitizeHtml from 'sanitize-html';
 
 const connections = new Map(); // userId -> ws connection
 const roomSubscriptions = new Map(); // roomId -> Set of userIds
+
+const MAX_MESSAGE_LENGTH = 500;
+const MAX_MESSAGES_PER_MINUTE = 20;
+const messageRateLimits = new Map(); // userId -> { count, resetTime }
 
 export const setupWebSocket = (wss) => {
   wss.on('connection', async (ws, req) => {
@@ -79,14 +85,63 @@ export const setupWebSocket = (wss) => {
             break;
 
           case 'chat':
-            if (currentRoomId && userId) {
-              broadcastToRoom(currentRoomId, {
-                type: 'chat_message',
-                userId,
-                message: data.message,
-                timestamp: new Date().toISOString()
-              });
+            if (!currentRoomId || !userId) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Not in a room or not authenticated'
+              }));
+              return;
             }
+
+            // Rate limiting
+            if (!checkRateLimit(userId)) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Too many messages. Please slow down.'
+              }));
+              return;
+            }
+
+            // Validate message
+            if (!data.message || typeof data.message !== 'string') {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Invalid message format'
+              }));
+              return;
+            }
+
+            // Sanitize and filter message
+            let cleanMessage = sanitizeHtml(data.message, {
+              allowedTags: [],
+              allowedAttributes: {}
+            }).trim();
+
+            if (cleanMessage.length === 0) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Message cannot be empty'
+              }));
+              return;
+            }
+
+            if (cleanMessage.length > MAX_MESSAGE_LENGTH) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: `Message too long (max ${MAX_MESSAGE_LENGTH} characters)`
+              }));
+              return;
+            }
+
+            // Filter profanity
+            cleanMessage = filterProfanity(cleanMessage);
+
+            broadcastToRoom(currentRoomId, {
+              type: 'chat_message',
+              userId,
+              message: cleanMessage,
+              timestamp: new Date().toISOString()
+            });
             break;
 
           default:
@@ -135,12 +190,38 @@ export const setupWebSocket = (wss) => {
 
 async function authenticateUser(token) {
   try {
+    if (!token || typeof token !== 'string') {
+      return null;
+    }
     const decodedToken = await getAuth().verifyIdToken(token);
     return decodedToken.uid;
   } catch (error) {
     logger.error('WebSocket auth failed:', error);
     return null;
   }
+}
+
+function checkRateLimit(userId) {
+  if (!userId) return false;
+
+  const now = Date.now();
+  const limit = messageRateLimits.get(userId);
+
+  if (!limit || now > limit.resetTime) {
+    // Reset or create new limit
+    messageRateLimits.set(userId, {
+      count: 1,
+      resetTime: now + 60000 // 1 minute
+    });
+    return true;
+  }
+
+  if (limit.count >= MAX_MESSAGES_PER_MINUTE) {
+    return false;
+  }
+
+  limit.count++;
+  return true;
 }
 
 function subscribeToRoom(userId, roomId) {
