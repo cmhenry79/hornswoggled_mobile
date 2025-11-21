@@ -57,14 +57,7 @@ fun LobbyScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                HornswoggledPurple,
-                                HornswoggledMagenta
-                            )
-                        )
-                    )
+                    .background(PurpleMagentaVerticalGradient)
                     .padding(top = 48.dp, bottom = 24.dp)
                     .padding(horizontal = 20.dp)
             ) {
@@ -128,9 +121,7 @@ fun LobbyScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(60.dp),
-                            gradient = Brush.horizontalGradient(
-                                colors = listOf(HornswoggledCyan, ElectricBlue)
-                            )
+                            gradient = CyanBlueGradient
                         )
 
                         GameButton(
@@ -139,9 +130,7 @@ fun LobbyScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(60.dp),
-                            gradient = Brush.horizontalGradient(
-                                colors = listOf(HornswoggledOrange, HornswoggledYellow)
-                            )
+                            gradient = OrangeYellowGradient
                         )
                     }
                 }

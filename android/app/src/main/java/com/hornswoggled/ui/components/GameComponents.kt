@@ -32,9 +32,7 @@ fun GameButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    gradient: Brush = Brush.horizontalGradient(
-        colors = listOf(HornswoggledPurple, HornswoggledMagenta)
-    )
+    gradient: Brush = PurpleMagentaGradient
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -53,9 +51,7 @@ fun GameButton(
                 spotColor = HornswoggledMagenta.copy(alpha = 0.5f)
             )
             .clip(GameButtonShape)
-            .background(if (enabled) gradient else Brush.horizontalGradient(
-                listOf(Disabled, Disabled)
-            ))
+            .background(if (enabled) gradient else DisabledGradient)
             .clickable(enabled = enabled) {
                 isPressed = true
                 onClick()
@@ -206,11 +202,15 @@ fun PlayerAvatar(
 
 /**
  * Animated countdown timer
+ * @param progress Timer progress (0.0 to 1.0)
+ * @param modifier Modifier for the timer
+ * @param timeRemaining Optional time remaining in seconds to display instead of percentage
  */
 @Composable
 fun GameTimer(
     progress: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    timeRemaining: Int? = null
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -237,7 +237,7 @@ fun GameTimer(
         )
 
         Text(
-            text = "${(animatedProgress * 100).toInt()}%",
+            text = if (timeRemaining != null) "${timeRemaining}s" else "${(animatedProgress * 100).toInt()}%",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(top = 4.dp),

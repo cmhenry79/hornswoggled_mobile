@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 import com.hornswoggled.ui.components.*
 import com.hornswoggled.ui.theme.*
 import kotlinx.coroutines.tasks.await
@@ -306,8 +308,31 @@ fun LoginScreen(
 
                             // Anonymous sign in with Firebase
                             FirebaseAuth.getInstance().signInAnonymously()
-                                .addOnSuccessListener {
-                                    onLoginSuccess()
+                                .addOnSuccessListener { authResult ->
+                                    // Save display name to Firestore
+                                    val userId = authResult.user?.uid
+                                    if (userId != null) {
+                                        FirebaseFirestore.getInstance()
+                                            .collection("users")
+                                            .document(userId)
+                                            .set(hashMapOf(
+                                                "displayName" to displayName,
+                                                "createdAt" to FieldValue.serverTimestamp(),
+                                                "coins" to 0,
+                                                "gamesPlayed" to 0,
+                                                "gamesWon" to 0
+                                            ))
+                                            .addOnSuccessListener {
+                                                onLoginSuccess()
+                                            }
+                                            .addOnFailureListener { e ->
+                                                errorMessage = "Failed to create profile: ${e.message}"
+                                                isLoading = false
+                                            }
+                                    } else {
+                                        errorMessage = "Authentication succeeded but user ID is null"
+                                        isLoading = false
+                                    }
                                 }
                                 .addOnFailureListener { e ->
                                     errorMessage = "Login failed: ${e.message}"

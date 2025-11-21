@@ -36,11 +36,30 @@ fun GameScreen(
     // Mock state - in production comes from ViewModel
     var roundWord by remember { mutableStateOf("HORNSWOGGLE") }
     var currentSubmission by remember { mutableStateOf("") }
-    var timerProgress by remember { mutableStateOf(0.65f) }
     var currentRound by remember { mutableStateOf(2) }
     var totalRounds by remember { mutableStateOf(5) }
     var playerScore by remember { mutableStateOf(150) }
     val maxChars = 200
+
+    // Timer state
+    val roundDuration = 90 // seconds
+    var timeRemaining by remember { mutableStateOf(roundDuration) }
+    var isTimerRunning by remember { mutableStateOf(true) }
+    val timerProgress = timeRemaining.toFloat() / roundDuration
+
+    // Timer countdown logic
+    LaunchedEffect(currentRound, isTimerRunning) {
+        timeRemaining = roundDuration
+        while (timeRemaining > 0 && isTimerRunning) {
+            kotlinx.coroutines.delay(1000)
+            timeRemaining--
+        }
+        if (timeRemaining == 0 && isTimerRunning) {
+            // Auto-submit when time runs out
+            isTimerRunning = false
+            // In production: trigger auto-submit logic
+        }
+    }
 
     // Animated word entrance
     var wordVisible by remember { mutableStateOf(false) }
@@ -187,6 +206,7 @@ fun GameScreen(
                 // Timer
                 GameTimer(
                     progress = timerProgress,
+                    timeRemaining = timeRemaining,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -289,15 +309,14 @@ fun GameScreen(
                 GameButton(
                     text = "🎯 SUBMIT ANSWER",
                     onClick = {
-                        // Submit logic
+                        isTimerRunning = false
+                        // In production: send submission to backend
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(64.dp),
-                    enabled = currentSubmission.isNotBlank() && currentSubmission.length <= maxChars,
-                    gradient = Brush.horizontalGradient(
-                        colors = listOf(SuccessGreen, Color(0xFF00C853))
-                    )
+                    enabled = currentSubmission.isNotBlank() && currentSubmission.length <= maxChars && isTimerRunning,
+                    gradient = GreenSuccessGradient
                 )
 
                 Spacer(modifier = Modifier.height(80.dp))
