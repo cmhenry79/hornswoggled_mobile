@@ -25,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.sp
 import com.hornswoggled.ui.components.*
 import com.hornswoggled.ui.theme.*
@@ -395,6 +397,7 @@ private fun RoomCodeCard(
     roomCode: String,
     modifier: Modifier = Modifier
 ) {
+    val clipboardManager = LocalClipboardManager.current
     var showCopiedMessage by remember { mutableStateOf(false) }
 
     LaunchedEffect(showCopiedMessage) {
@@ -442,7 +445,7 @@ private fun RoomCodeCard(
             // Copy button
             Surface(
                 modifier = Modifier.clickable {
-                    // TODO: Copy to clipboard
+                    clipboardManager.setText(AnnotatedString(roomCode))
                     showCopiedMessage = true
                 },
                 shape = PillShape,

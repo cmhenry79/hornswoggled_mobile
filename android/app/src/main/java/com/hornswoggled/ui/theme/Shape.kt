@@ -21,5 +21,3 @@ val Shapes = Shapes(
 val GameButtonShape = RoundedCornerShape(20.dp)
 val GameCardShape = RoundedCornerShape(20.dp)
 val PillShape = RoundedCornerShape(percent = 50)
-val TopRoundedShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-val BottomRoundedShape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)

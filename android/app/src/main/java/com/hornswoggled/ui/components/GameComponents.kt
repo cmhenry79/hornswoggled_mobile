@@ -237,7 +237,7 @@ fun GameTimer(
         )
 
         Text(
-            text = "${(animatedProgress * 100).toInt()}s",
+            text = "${(animatedProgress * 100).toInt()}%",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(top = 4.dp),
