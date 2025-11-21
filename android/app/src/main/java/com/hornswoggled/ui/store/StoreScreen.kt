@@ -6,16 +6,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hornswoggled.ui.components.*
+import com.hornswoggled.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,53 +48,72 @@ fun StoreScreen(
 
     val categories = listOf("All", "avatar", "frame", "badge", "emote")
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Store") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, "Back")
-                    }
-                },
-                actions = {
-                    // Coin balance
-                    Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.padding(end = 8.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Hero Header with Gradient
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                HornswoggledOrange,
+                                HornswoggledYellow
+                            )
+                        )
+                    )
+                    .padding(top = 48.dp, bottom = 24.dp)
+                    .padding(horizontal = 20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        IconButton(
+                            onClick = onNavigateBack,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color.White.copy(alpha = 0.2f), CircleShape)
                         ) {
                             Icon(
-                                Icons.Default.MonetizationOn,
-                                contentDescription = "Coins",
-                                tint = Color(0xFFFFD700),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = coins.value.toString(),
-                                fontWeight = FontWeight.Bold
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
                             )
                         }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Text(
+                            text = "🏪 Store",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
                     }
+
+                    // Coin balance
+                    ScoreBadge(score = coins.value)
                 }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+            }
+
             // Category Tabs
             ScrollableTabRow(
                 selectedTabIndex = categories.indexOf(selectedCategory),
                 modifier = Modifier.fillMaxWidth(),
-                edgePadding = 16.dp
+                edgePadding = 16.dp,
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = HornswoggledPurple
             ) {
                 categories.forEach { category ->
                     Tab(
@@ -97,7 +121,14 @@ fun StoreScreen(
                         onClick = { selectedCategory = category },
                         text = {
                             Text(
-                                text = category.replaceFirstChar { it.uppercase() },
+                                text = when (category) {
+                                    "All" -> "🎭 All"
+                                    "avatar" -> "👤 Avatars"
+                                    "frame" -> "🖼️ Frames"
+                                    "badge" -> "🏆 Badges"
+                                    "emote" -> "💬 Emotes"
+                                    else -> category
+                                },
                                 fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.Normal
                             )
                         }
@@ -137,36 +168,101 @@ fun StoreScreen(
     if (showPurchaseDialog && selectedItem != null) {
         AlertDialog(
             onDismissRequest = { showPurchaseDialog = false },
-            title = { Text("Purchase ${selectedItem!!.name}?") },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Text(
+                    "🛒 Purchase ${selectedItem!!.name}?",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
                 Column {
-                    Text("This will cost ${selectedItem!!.price} coins.")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Your balance: ${coins.value} coins",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    // Item preview
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                getCategoryColor(selectedItem!!.category).copy(alpha = 0.1f),
+                                shape = GameCardShape
+                            )
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = selectedItem!!.emoji,
+                            fontSize = 64.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Surface(
+                        shape = GameCardShape,
+                        color = InfoBlue.copy(alpha = 0.1f),
+                        border = BorderStroke(1.dp, InfoBlue.copy(alpha = 0.3f))
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Cost:", fontSize = 14.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("⭐", fontSize = 16.sp)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        "${selectedItem!!.price}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Your balance:", fontSize = 14.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("⭐", fontSize = 16.sp)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        "${coins.value}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = if (coins.value >= selectedItem!!.price) SuccessGreen else ErrorRed
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
-                Button(
+                GameButton(
+                    text = "Purchase",
                     onClick = {
                         if (coins.value >= selectedItem!!.price) {
                             coins.value -= selectedItem!!.price
                             showPurchaseDialog = false
-                            // In production: Call API to purchase item
                         }
                     },
-                    enabled = coins.value >= selectedItem!!.price
-                ) {
-                    Text("Purchase")
-                }
+                    enabled = coins.value >= selectedItem!!.price,
+                    gradient = Brush.horizontalGradient(
+                        colors = listOf(SuccessGreen, Color(0xFF00C853))
+                    )
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showPurchaseDialog = false }) {
-                    Text("Cancel")
-                }
+                GameOutlinedButton(
+                    text = "Cancel",
+                    onClick = { showPurchaseDialog = false }
+                )
             }
         )
     }
@@ -177,27 +273,23 @@ private fun StoreItemCard(
     item: StoreItemData,
     onClick: () -> Unit
 ) {
-    Card(
+    GameCard(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(0.85f)
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .aspectRatio(0.85f),
+        onClick = onClick
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Icon/Emoji
             Box(
                 modifier = Modifier
                     .size(80.dp)
                     .background(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.medium
+                        getCategoryColor(item.category).copy(alpha = 0.2f),
+                        shape = GameCardShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -207,72 +299,63 @@ private fun StoreItemCard(
                 )
             }
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = item.name,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                maxLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Category chip
+            Surface(
+                color = getCategoryColor(item.category).copy(alpha = 0.2f),
+                shape = PillShape
             ) {
                 Text(
-                    text = item.name,
+                    text = item.category.uppercase(),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    maxLines = 2
+                    color = getCategoryColor(item.category)
                 )
+            }
 
-                Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                Chip(
-                    text = item.category,
-                    color = when (item.category) {
-                        "avatar" -> Color(0xFF4CAF50)
-                        "frame" -> Color(0xFF2196F3)
-                        "badge" -> Color(0xFFFF9800)
-                        "emote" -> Color(0xFF9C27B0)
-                        else -> MaterialTheme.colorScheme.primary
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Price
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = MaterialTheme.shapes.small
+            // Price
+            Surface(
+                color = HornswoggledYellow,
+                shape = PillShape
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.MonetizationOn,
-                            contentDescription = "Price",
-                            tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = item.price.toString(),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
-                    }
+                    Text("⭐", fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = item.price.toString(),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color(0xFF2D1B00)
+                    )
                 }
             }
         }
     }
 }
 
-@Composable
-private fun Chip(text: String, color: Color) {
-    Surface(
-        color = color.copy(alpha = 0.2f),
-        contentColor = color,
-        shape = MaterialTheme.shapes.extraSmall
-    ) {
-        Text(
-            text = text.uppercase(),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold
-        )
+private fun getCategoryColor(category: String): Color {
+    return when (category) {
+        "avatar" -> Color(0xFF4CAF50)
+        "frame" -> Color(0xFF2196F3)
+        "badge" -> Color(0xFFFF9800)
+        "emote" -> Color(0xFF9C27B0)
+        else -> Color.Gray
     }
 }
 

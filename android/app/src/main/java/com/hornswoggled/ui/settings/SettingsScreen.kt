@@ -1,17 +1,23 @@
 package com.hornswoggled.ui.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hornswoggled.ui.components.*
+import com.hornswoggled.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,202 +32,260 @@ fun SettingsScreen(
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf("") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, "Back")
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Hero Header with Gradient
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    HornswoggledPurple,
+                                    HornswoggledMagenta
+                                )
+                            )
+                        )
+                        .padding(top = 48.dp, bottom = 24.dp)
+                        .padding(horizontal = 20.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = onNavigateBack,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Text(
+                            text = "⚙️ Settings",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
                     }
                 }
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+            }
+
             // Account Section
             item {
-                SectionHeader("Account")
+                SectionHeader("👤 Account")
             }
 
             item {
-                SettingsItem(
-                    icon = Icons.Default.Person,
-                    title = "Edit Profile",
-                    subtitle = "Change your display name and avatar",
-                    onClick = { /* Navigate to edit profile */ }
-                )
-            }
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Column {
+                        SettingsItem(
+                            icon = Icons.Default.Person,
+                            title = "Edit Profile",
+                            subtitle = "Change your display name and avatar",
+                            onClick = { /* Navigate to edit profile */ }
+                        )
 
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Email,
-                    title = "Email",
-                    subtitle = "user@example.com",
-                    onClick = { /* Change email */ }
-                )
-            }
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
 
-            item {
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                        SettingsItem(
+                            icon = Icons.Default.Email,
+                            title = "Email",
+                            subtitle = "user@example.com",
+                            onClick = { /* Change email */ }
+                        )
+                    }
+                }
             }
 
             // Game Settings
             item {
-                SectionHeader("Game")
+                SectionHeader("🎮 Game")
             }
 
             item {
-                SwitchSettingsItem(
-                    icon = Icons.Default.VolumeUp,
-                    title = "Sound Effects",
-                    subtitle = "Play sound effects during game",
-                    checked = soundEnabled,
-                    onCheckedChange = { soundEnabled = it }
-                )
-            }
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Column {
+                        SwitchSettingsItem(
+                            icon = Icons.Default.VolumeUp,
+                            title = "Sound Effects",
+                            subtitle = "Play sound effects during game",
+                            checked = soundEnabled,
+                            onCheckedChange = { soundEnabled = it }
+                        )
 
-            item {
-                SwitchSettingsItem(
-                    icon = Icons.Default.MusicNote,
-                    title = "Music",
-                    subtitle = "Play background music",
-                    checked = musicEnabled,
-                    onCheckedChange = { musicEnabled = it }
-                )
-            }
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            item {
-                SwitchSettingsItem(
-                    icon = Icons.Default.Vibration,
-                    title = "Vibration",
-                    subtitle = "Vibrate on interactions",
-                    checked = vibrationEnabled,
-                    onCheckedChange = { vibrationEnabled = it }
-                )
-            }
+                        SwitchSettingsItem(
+                            icon = Icons.Default.MusicNote,
+                            title = "Music",
+                            subtitle = "Play background music",
+                            checked = musicEnabled,
+                            onCheckedChange = { musicEnabled = it }
+                        )
 
-            item {
-                SwitchSettingsItem(
-                    icon = Icons.Default.Save,
-                    title = "Auto-save Submissions",
-                    subtitle = "Automatically save your submissions to gallery",
-                    checked = autoSaveEnabled,
-                    onCheckedChange = { autoSaveEnabled = it }
-                )
-            }
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            item {
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                        SwitchSettingsItem(
+                            icon = Icons.Default.Vibration,
+                            title = "Vibration",
+                            subtitle = "Vibrate on interactions",
+                            checked = vibrationEnabled,
+                            onCheckedChange = { vibrationEnabled = it }
+                        )
+
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                        SwitchSettingsItem(
+                            icon = Icons.Default.Save,
+                            title = "Auto-save Submissions",
+                            subtitle = "Automatically save submissions to gallery",
+                            checked = autoSaveEnabled,
+                            onCheckedChange = { autoSaveEnabled = it }
+                        )
+                    }
+                }
             }
 
             // Notifications
             item {
-                SectionHeader("Notifications")
+                SectionHeader("🔔 Notifications")
             }
 
             item {
-                SwitchSettingsItem(
-                    icon = Icons.Default.Notifications,
-                    title = "Push Notifications",
-                    subtitle = "Receive notifications about games and friends",
-                    checked = notificationsEnabled,
-                    onCheckedChange = { notificationsEnabled = it }
-                )
-            }
-
-            item {
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    SwitchSettingsItem(
+                        icon = Icons.Default.Notifications,
+                        title = "Push Notifications",
+                        subtitle = "Receive notifications about games and friends",
+                        checked = notificationsEnabled,
+                        onCheckedChange = { notificationsEnabled = it }
+                    )
+                }
             }
 
             // About Section
             item {
-                SectionHeader("About")
+                SectionHeader("ℹ️ About")
             }
 
             item {
-                SettingsItem(
-                    icon = Icons.Default.Info,
-                    title = "App Version",
-                    subtitle = "1.0.0",
-                    onClick = { }
-                )
-            }
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Column {
+                        SettingsItem(
+                            icon = Icons.Default.Info,
+                            title = "App Version",
+                            subtitle = "1.0.0",
+                            onClick = { }
+                        )
 
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Description,
-                    title = "Terms of Service",
-                    subtitle = "Read our terms",
-                    onClick = {
-                        dialogType = "terms"
-                        showDialog = true
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        SettingsItem(
+                            icon = Icons.Default.Description,
+                            title = "Terms of Service",
+                            subtitle = "Read our terms",
+                            onClick = {
+                                dialogType = "terms"
+                                showDialog = true
+                            }
+                        )
+
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        SettingsItem(
+                            icon = Icons.Default.PrivacyTip,
+                            title = "Privacy Policy",
+                            subtitle = "How we handle your data",
+                            onClick = {
+                                dialogType = "privacy"
+                                showDialog = true
+                            }
+                        )
+
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        SettingsItem(
+                            icon = Icons.Default.Help,
+                            title = "Help & Support",
+                            subtitle = "Get help with Hornswoggled",
+                            onClick = { /* Open support */ }
+                        )
                     }
-                )
-            }
-
-            item {
-                SettingsItem(
-                    icon = Icons.Default.PrivacyTip,
-                    title = "Privacy Policy",
-                    subtitle = "How we handle your data",
-                    onClick = {
-                        dialogType = "privacy"
-                        showDialog = true
-                    }
-                )
-            }
-
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Help,
-                    title = "Help & Support",
-                    subtitle = "Get help with Hornswoggled",
-                    onClick = { /* Open support */ }
-                )
-            }
-
-            item {
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                }
             }
 
             // Danger Zone
             item {
-                SectionHeader("Danger Zone")
+                SectionHeader("⚠️ Danger Zone")
             }
 
             item {
-                SettingsItem(
-                    icon = Icons.Default.DeleteForever,
-                    title = "Delete Account",
-                    subtitle = "Permanently delete your account",
-                    onClick = {
-                        dialogType = "delete"
-                        showDialog = true
-                    },
-                    isDangerous = true
-                )
-            }
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Column {
+                        SettingsItem(
+                            icon = Icons.Default.DeleteForever,
+                            title = "Delete Account",
+                            subtitle = "Permanently delete your account",
+                            onClick = {
+                                dialogType = "delete"
+                                showDialog = true
+                            },
+                            isDangerous = true
+                        )
 
-            item {
-                SettingsItem(
-                    icon = Icons.Default.ExitToApp,
-                    title = "Logout",
-                    subtitle = "Sign out of your account",
-                    onClick = {
-                        dialogType = "logout"
-                        showDialog = true
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        SettingsItem(
+                            icon = Icons.Default.ExitToApp,
+                            title = "Logout",
+                            subtitle = "Sign out of your account",
+                            onClick = {
+                                dialogType = "logout"
+                                showDialog = true
+                            }
+                        )
                     }
-                )
+                }
             }
 
             // Bottom spacing
             item {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
@@ -232,20 +296,29 @@ fun SettingsScreen(
             "logout" -> {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
-                    title = { Text("Logout") },
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    title = {
+                        Text(
+                            "🚪 Logout",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     text = { Text("Are you sure you want to logout?") },
                     confirmButton = {
-                        Button(onClick = {
-                            showDialog = false
-                            // Perform logout
-                        }) {
-                            Text("Logout")
-                        }
+                        GameButton(
+                            text = "Logout",
+                            onClick = {
+                                showDialog = false
+                                // Perform logout
+                            }
+                        )
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Cancel")
-                        }
+                        GameOutlinedButton(
+                            text = "Cancel",
+                            onClick = { showDialog = false }
+                        )
                     }
                 )
             }
@@ -253,25 +326,35 @@ fun SettingsScreen(
             "delete" -> {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
-                    title = { Text("Delete Account") },
-                    text = { Text("This action cannot be undone. All your data will be permanently deleted.") },
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    title = {
+                        Text(
+                            "⚠️ Delete Account",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ErrorRed
+                        )
+                    },
+                    text = {
+                        Text("This action cannot be undone. All your data will be permanently deleted.")
+                    },
                     confirmButton = {
-                        Button(
+                        GameButton(
+                            text = "Delete",
                             onClick = {
                                 showDialog = false
                                 // Perform account deletion
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
+                            gradient = Brush.horizontalGradient(
+                                colors = listOf(ErrorRed, ErrorRed)
                             )
-                        ) {
-                            Text("Delete")
-                        }
+                        )
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Cancel")
-                        }
+                        GameOutlinedButton(
+                            text = "Cancel",
+                            onClick = { showDialog = false }
+                        )
                     }
                 )
             }
@@ -279,7 +362,14 @@ fun SettingsScreen(
             "terms", "privacy" -> {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
-                    title = { Text(if (dialogType == "terms") "Terms of Service" else "Privacy Policy") },
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    title = {
+                        Text(
+                            if (dialogType == "terms") "📄 Terms of Service" else "🔒 Privacy Policy",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     text = {
                         Text(
                             "This would display the full ${if (dialogType == "terms") "terms of service" else "privacy policy"} content.\n\n" +
@@ -287,9 +377,10 @@ fun SettingsScreen(
                         )
                     },
                     confirmButton = {
-                        Button(onClick = { showDialog = false }) {
-                            Text("Close")
-                        }
+                        GameButton(
+                            text = "Close",
+                            onClick = { showDialog = false }
+                        )
                     }
                 )
             }
@@ -301,10 +392,10 @@ fun SettingsScreen(
 private fun SectionHeader(title: String) {
     Text(
         text = title,
-        fontSize = 14.sp,
+        fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        color = HornswoggledPurple,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp, top = 24.dp)
     )
 }
 
@@ -320,14 +411,14 @@ private fun SettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             icon,
             contentDescription = title,
             modifier = Modifier.size(24.dp),
-            tint = if (isDangerous) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+            tint = if (isDangerous) ErrorRed else MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -336,7 +427,8 @@ private fun SettingsItem(
             Text(
                 text = title,
                 fontWeight = FontWeight.Medium,
-                color = if (isDangerous) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                fontSize = 16.sp,
+                color = if (isDangerous) ErrorRed else MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = subtitle,
@@ -348,7 +440,7 @@ private fun SettingsItem(
         Icon(
             Icons.Default.ChevronRight,
             contentDescription = "Go",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         )
     }
 }
@@ -364,14 +456,14 @@ private fun SwitchSettingsItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             icon,
             contentDescription = title,
             modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = if (checked) HornswoggledPurple else MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -379,7 +471,8 @@ private fun SwitchSettingsItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp
             )
             Text(
                 text = subtitle,
@@ -390,7 +483,12 @@ private fun SwitchSettingsItem(
 
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = HornswoggledPurple,
+                checkedBorderColor = HornswoggledPurple
+            )
         )
     }
 }

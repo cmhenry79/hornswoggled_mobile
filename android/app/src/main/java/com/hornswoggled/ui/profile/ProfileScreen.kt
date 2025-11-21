@@ -1,7 +1,10 @@
 package com.hornswoggled.ui.profile
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -12,12 +15,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import com.hornswoggled.ui.components.*
+import com.hornswoggled.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,55 +45,98 @@ fun ProfileScreen(
         mutableStateOf(if (gamesPlayed.value > 0) (gamesWon.value * 100 / gamesPlayed.value) else 0)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Profile") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, "Settings")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Profile Header
+            // Profile Header with Gradient
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    HornswoggledPurple,
+                                    HornswoggledMagenta
+                                )
+                            )
+                        )
+                        .padding(top = 48.dp, bottom = 32.dp)
+                        .padding(horizontal = 20.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Avatar
+                        // Back and Settings buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            IconButton(
+                                onClick = onNavigateBack,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                            ) {
+                                Icon(
+                                    Icons.Default.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = Color.White
+                                )
+                            }
+
+                            IconButton(
+                                onClick = onNavigateToSettings,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                            ) {
+                                Icon(
+                                    Icons.Default.Settings,
+                                    contentDescription = "Settings",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Avatar with pulsing ring
+                        val infiniteTransition = rememberInfiniteTransition(label = "avatar_pulse")
+                        val ringScale by infiniteTransition.animateFloat(
+                            initialValue = 1f,
+                            targetValue = 1.05f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1500, easing = FastOutSlowInEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "ring_scale"
+                        )
+
                         Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            modifier = Modifier.size(140.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = "Avatar",
-                                modifier = Modifier.size(80.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            // Pulsing ring
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .scale(ringScale)
+                                    .border(4.dp, HornswoggledCyan, CircleShape)
+                            )
+
+                            // Avatar
+                            PlayerAvatar(
+                                name = displayName.value,
+                                color = PlayerColor1,
+                                size = 120.dp
                             )
                         }
 
@@ -95,227 +145,287 @@ fun ProfileScreen(
                         // Display Name
                         Text(
                             text = displayName.value,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                        // Level Badge
+                        // Level Badge with gradient
                         Surface(
-                            shape = MaterialTheme.shapes.medium,
-                            color = MaterialTheme.colorScheme.secondary
+                            shape = PillShape,
+                            color = HornswoggledYellow
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    Icons.Default.Star,
-                                    contentDescription = "Level",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("⭐", fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Level ${level.value}",
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF2D1B00)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // XP Progress with styled card
+                        GameCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "🎯 XP Progress",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        "${xp.value} / 1000",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = HornswoggledPurple
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                LinearProgressIndicator(
+                                    progress = xp.value / 1000f,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(12.dp)
+                                        .clip(PillShape),
+                                    color = HornswoggledPurple,
+                                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // XP Progress
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("XP Progress", fontSize = 14.sp)
-                                Text("${xp.value} / 1000", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LinearProgressIndicator(
-                                progress = xp.value / 1000f,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(MaterialTheme.shapes.small)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Coins
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.MonetizationOn,
-                                contentDescription = "Coins",
-                                tint = Color(0xFFFFD700)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "${coins.value} Coins",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        // Coins with pulsing animation
+                        ScoreBadge(score = coins.value)
                     }
                 }
             }
 
             // Statistics
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
-                    ) {
-                        Text(
-                            text = "Statistics",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
+                    Text(
+                        text = "📊 Statistics",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                        StatRow("Games Played", gamesPlayed.value.toString())
-                        Divider(modifier = Modifier.padding(vertical = 12.dp))
-                        StatRow("Games Won", gamesWon.value.toString())
-                        Divider(modifier = Modifier.padding(vertical = 12.dp))
-                        StatRow("Win Rate", "${winRate.value}%")
-                        Divider(modifier = Modifier.padding(vertical = 12.dp))
-                        StatRow("Total Score", totalScore.value.toString())
+                    // Stats grid
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            StatCard(
+                                icon = "🎮",
+                                label = "Played",
+                                value = gamesPlayed.value.toString(),
+                                modifier = Modifier.weight(1f)
+                            )
+                            StatCard(
+                                icon = "🏆",
+                                label = "Won",
+                                value = gamesWon.value.toString(),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            StatCard(
+                                icon = "📈",
+                                label = "Win Rate",
+                                value = "${winRate.value}%",
+                                modifier = Modifier.weight(1f)
+                            )
+                            StatCard(
+                                icon = "⭐",
+                                label = "Total Score",
+                                value = totalScore.value.toString(),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
 
             // Quick Actions
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 ) {
-                    Column(
+                    Text(
+                        text = "⚡ Quick Actions",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    GameButton(
+                        text = "🖼️ View Gallery",
+                        onClick = onNavigateToGallery,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(20.dp)
-                    ) {
-                        Text(
-                            text = "Quick Actions",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            .height(56.dp),
+                        gradient = Brush.horizontalGradient(
+                            colors = listOf(HornswoggledCyan, ElectricBlue)
                         )
+                    )
 
-                        FilledTonalButton(
-                            onClick = onNavigateToGallery,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Default.Image, contentDescription = "Gallery")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("View Gallery")
-                        }
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedButton(
-                            onClick = { /* Edit Profile */ },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Edit Profile")
-                        }
-                    }
+                    GameOutlinedButton(
+                        text = "✏️ Edit Profile",
+                        onClick = { /* Edit Profile */ },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                    )
                 }
             }
 
             // Achievements Preview
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                GameCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
-                    ) {
-                        Text(
-                            text = "Recent Achievements",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
+                    Text(
+                        text = "🎖️ Recent Achievements",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                        AchievementItem(
-                            icon = Icons.Default.EmojiEvents,
-                            title = "First Victory",
-                            description = "Win your first game"
-                        )
+                    AchievementItem(
+                        icon = "🏆",
+                        title = "First Victory",
+                        description = "Win your first game",
+                        color = HornswoggledYellow
+                    )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                        AchievementItem(
-                            icon = Icons.Default.Favorite,
-                            title = "Popular Choice",
-                            description = "Receive 10 votes in one round"
-                        )
-                    }
+                    AchievementItem(
+                        icon = "❤️",
+                        title = "Popular Choice",
+                        description = "Receive 10 votes in one round",
+                        color = HornswoggledMagenta
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    AchievementItem(
+                        icon = "🔥",
+                        title = "On Fire",
+                        description = "Win 3 games in a row",
+                        color = HornswoggledOrange
+                    )
                 }
+            }
+
+            // Bottom spacing
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
 }
 
 @Composable
-private fun StatRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+private fun StatCard(
+    icon: String,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = GameCardShape,
+        color = MaterialTheme.colorScheme.surface
     ) {
-        Text(
-            text = label,
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = icon,
+                fontSize = 32.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
 @Composable
 private fun AchievementItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: String,
     title: String,
-    description: String
+    description: String,
+    color: Color
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(48.dp)
+            shape = GameCardShape,
+            color = color.copy(alpha = 0.2f),
+            border = BorderStroke(2.dp, color.copy(alpha = 0.5f)),
+            modifier = Modifier.size(56.dp)
         ) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Icon(
-                    icon,
-                    contentDescription = title,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                Text(
+                    text = icon,
+                    fontSize = 28.sp
                 )
             }
         }
@@ -326,13 +436,31 @@ private fun AchievementItem(
             Text(
                 text = title,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = description,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+
+        Surface(
+            shape = CircleShape,
+            color = color
+        ) {
+            Box(
+                modifier = Modifier.size(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "✓",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
 }
